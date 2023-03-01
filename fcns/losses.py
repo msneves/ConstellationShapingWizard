@@ -41,7 +41,7 @@ def gmi_eval(probs,x,x_onehot,y,const_points_n,syms_noisy):
     P_Y_bk_cj = P_Y_X*probs
     
     P_Y_bk =  tf.reduce_sum(tf.expand_dims(tf.stack([1-st.session_state.gray_labels,st.session_state.gray_labels],axis=-1),axis=0)*tf.expand_dims(tf.expand_dims(P_Y_bk_cj,axis=-1),axis=-1),axis=1)
-    P_Y_bk /= tf.reduce_sum(P_Y_bk,axis=0)
+    P_Y_bk /= tf.reduce_sum(P_Y_bk,axis=0) + tf.keras.backend.epsilon()
     
     sum_log2_Q = tf.reduce_sum(P_Y_bk*tf.math.log(P_bk_Y + tf.keras.backend.epsilon())/tf.math.log(tf.constant(2,dtype=tf.float32)),axis=0)
     

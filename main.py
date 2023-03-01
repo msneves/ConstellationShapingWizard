@@ -98,6 +98,7 @@ def train_step():
 # While learning and the learning epochs have not been reached
 while(st.session_state.learning and st.session_state.current_epoch<st.session_state.num_epochs):
     
+    
     # If the number of batches  has been reached, reset optimizers
     if st.session_state.current_batch > st.session_state.num_batches:
         st.session_state.current_epoch += 1
@@ -106,6 +107,10 @@ while(st.session_state.learning and st.session_state.current_epoch<st.session_st
         
     # Else, perform batch training step 
     else:
+        # Update progress bar
+        st.session_state.progress.progress((st.session_state.current_batch+st.session_state.num_batches*st.session_state.current_epoch)/(st.session_state.num_batches*st.session_state.num_epochs))
+        
+        # Iterate over system
         st.session_state.current_loss,st.session_state.H,st.session_state.MI,st.session_state.GMI = train_step()
         st.session_state.current_batch += 1
     

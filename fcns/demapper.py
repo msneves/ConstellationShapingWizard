@@ -18,7 +18,7 @@ def demapper_std(rx_sig,probs):
     # Used to compute P(X|Y)
     P_Y_X = gaussian2d_pdf(st.session_state.var_1d_noise,ref_const,rx_sig)
     
-    P_X_Y = P_Y_X*probs/tf.reduce_sum(P_Y_X*probs,axis=-1,keepdims=True)
+    P_X_Y = P_Y_X*probs/(tf.reduce_sum(P_Y_X*probs,axis=-1,keepdims=True) + tf.keras.backend.epsilon())
     
     return P_X_Y
 

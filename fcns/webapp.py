@@ -74,6 +74,7 @@ def page_setup():
         st.session_state.fig.patch.set_alpha(0.0)
         st.session_state.ax.axis('off')
         st.session_state.stplot = plot_area.pyplot(st.session_state.fig)
+        st.session_state.progress = st.progress(0)
         st.session_state.sttable = st.table()
         
         # ML params
