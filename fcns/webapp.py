@@ -14,7 +14,7 @@ import uuid
 
 def page_setup():
     # Set tab title and logo
-    st.set_page_config(page_title='AE - Shaping Demo : IT, Aveiro', layout = 'wide', page_icon = 'logo.ico', initial_sidebar_state = 'auto')
+    st.set_page_config(page_title='Cont. Shaping Wizard : IT, Aveiro', layout = 'wide', page_icon = 'logo.ico', initial_sidebar_state='expanded' if st.session_state.get("paused", True) else 'auto')
     st.experimental_set_query_params(embed='true')
     enable_scroll = """
                     <style>
@@ -24,6 +24,8 @@ def page_setup():
                     </style>
                     """
     st.markdown(enable_scroll, unsafe_allow_html=True)
+    
+    st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>Constellation Shaping Wizard</h1>", unsafe_allow_html=True)
 
     # Set plot area
     resize = 0.7
@@ -35,8 +37,9 @@ def page_setup():
     if not "stop_button" in st.session_state:
         st.session_state.paused = False
         
-    st.sidebar.title('AE - Shaping Demo')
+    
     # Selectboxes
+    st.sidebar.title('Constellation Shaping Wizard')
     st.sidebar.subheader('System options')
     st.sidebar.selectbox('Constellation Order',[4,8,16,32,64,128,256],key='M',on_change=choice_M_fcn,index=4)
     st.sidebar.slider('SNR [dB]', 5,30,key='SNR_dB',on_change=snr_update_fcn,value=12)
@@ -44,7 +47,7 @@ def page_setup():
     
     st.sidebar.subheader('Learning options')
     st.sidebar.selectbox('Probabilistic Shaping',['Don\'t learn','Learn from uniform','Learn from random'],key='choice_probs',on_change=choice_probs_fcn,index=1)
-    st.sidebar.selectbox('Constellation Shaping',['Don\'t learn','Learn from square QAM','Learn from random'],key='choice_const',on_change=choice_const_fcn,index=0)
+    st.sidebar.selectbox('Geometric Shaping',['Don\'t learn','Learn from square QAM','Learn from random'],key='choice_const',on_change=choice_const_fcn,index=0)
     st.sidebar.selectbox('Demapper',['NN Symwise','NN Bitwise','Min. Dist'],key='choice_demapper',on_change=choice_demapper_fcn,index=1)
     st.sidebar.selectbox('Loss function',['CE','MSE','MI','GMI'],key='loss_fcn', on_change=reset_epochs(),index=3)
     
@@ -54,7 +57,7 @@ def page_setup():
     
     # PLot options
     st.sidebar.subheader('Plot options')
-    st.sidebar.checkbox('Show sym. probs.', key='show_probs')
+    st.sidebar.checkbox('Show sym. probs. (%)', key='show_probs')
     st.sidebar.checkbox('Show bit labels', key='show_bitlabels')
     
     # Buttons

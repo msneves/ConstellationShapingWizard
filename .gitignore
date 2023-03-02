@@ -1,3 +1,7 @@
 
 *.pyc
 *.pyc
+fcns/__pycache__/demapper.cpython-38.pyc
+*.pyc
+fcns/__pycache__/demapper.cpython-38.pyc
+fcns/__pycache__/losses.cpython-38.pyc

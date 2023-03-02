@@ -60,10 +60,7 @@ def plot():
                                     , color='white')
     st.session_state.ax.axis('off')
     
-    try:
-        st.session_state.stplot.pyplot(st.session_state.fig)
-    except:
-        reset_button_fcn()
+    st.session_state.stplot.pyplot(st.session_state.fig)
     
     df = pd.DataFrame(np.concatenate((tl,tc,tf.expand_dims(100*probs, axis=-1)), axis=-1), columns=['Bit Label','I','Q','Probability (%)'])
 
