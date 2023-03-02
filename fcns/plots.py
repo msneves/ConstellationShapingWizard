@@ -49,7 +49,7 @@ def plot():
             st.session_state.ax.text(tc[i,0],tc[i,1],f'{probs[i]*100:.2f}', clip_on=True)
     if st.session_state.show_bitlabels:
         for i in range(st.session_state.M):
-            st.session_state.ax.text(tc[i,0],tc[i,1]-.12,f'{i:06b}', clip_on=True,fontsize=6)
+            st.session_state.ax.text(tc[i,0],tc[i,1]-.12,f'{i:0{int(np.log2(st.session_state.M))}b}', clip_on=True,fontsize=6)
         
     st.session_state.ax.set_xlim((-2,2))
     st.session_state.ax.set_ylim((-2,2))
