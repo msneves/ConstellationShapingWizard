@@ -1,5 +1,5 @@
 
-# Autoencoder - Shaping Demo
+# Constellation Shaping Wizard
 
 This repository deploys a webapp where one can visually analyze the process of end-to-end learning of the probabilities, constellation geometry, and demapper of a communication system. 
 
