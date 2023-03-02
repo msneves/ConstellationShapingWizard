@@ -28,7 +28,7 @@ In the host machine/server, run the following command to install the required pa
 After, just change your current working directory to: 
 
 ```bash
-  <path to local repository>\AE_GUI\
+  <path to local repository>\ConstellationShapingWizard\
 ```
 
 And then run:
