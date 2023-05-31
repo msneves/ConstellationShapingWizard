@@ -56,7 +56,8 @@ def plot():
     st.session_state.ax.set_title(f'H = {st.session_state.H:0.2f}, ' + \
                                   f'MI = {max(0,st.session_state.MI):0.2f}, ' + \
                                   f'GMI = {max(0,st.session_state.GMI):0.2f}, ' + \
-                                  f'Shannon Limit = {np.log2(1+const_pow(norm_const(st.session_state.const_points, tf.nn.softmax(st.session_state.log_probs)) , tf.nn.softmax(st.session_state.log_probs))/(2*st.session_state.var_1d_noise)):0.2f}' \
+                                  f'Shannon Limit = {np.log2(1+const_pow(norm_const(st.session_state.const_points, tf.nn.softmax(st.session_state.log_probs)) , tf.nn.softmax(st.session_state.log_probs))/(2*st.session_state.var_1d_noise)):0.2f}, ' + \
+                                  f'SNR_eff = {10*np.log10(const_pow(norm_const(st.session_state.const_points, tf.nn.softmax(st.session_state.log_probs)) , tf.nn.softmax(st.session_state.log_probs))/(2*st.session_state.var_1d_noise)):0.2f} dB' \
                                     , color='white')
     st.session_state.ax.axis('off')
     
