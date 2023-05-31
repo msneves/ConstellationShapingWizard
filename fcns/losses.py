@@ -61,7 +61,7 @@ def cce(tx_y,rx_y):
 
 # Function to compute binary cross-entropy (BCE)
 def bce(tx_y,rx_y):
-    return keras.losses.BinaryCrossentropy()(tx_y,rx_y)
+    return keras.losses.BinaryCrossentropy(axis=-2)(tx_y,rx_y)
 
 # Function that, given a batch, returns the metrics for it, namely H, MI, GMI, MSE and CE
 def metrics_fcn(probs,x,x_onehot,y,const_points_n,syms_noisy):
