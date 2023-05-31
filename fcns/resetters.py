@@ -36,14 +36,21 @@ def reset_demapper():
         outputs = layers.Dense(np.log2(st.session_state.M), activation="sigmoid", name="rx_predictions")(outputs)
     
     st.session_state.demapper = keras.Model(inputs=inputs, outputs=outputs)
-    st.session_state.optimizer_demapper = keras.optimizers.Adam(learning_rate=st.session_state.lr_dmappr)
     
 
 def reset_optimizers():
-    st.session_state.optimizer_log_probs = keras.optimizers.Adam(learning_rate=st.session_state.lr_probs)
-    st.session_state.optimizer_const_points = keras.optimizers.Adam(learning_rate=st.session_state.lr_const)
-    st.session_state.optimizer_demapper = keras.optimizers.Adam(learning_rate=st.session_state.lr_dmappr)
-    
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_probs,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_log_probs = keras.optimizers.Adam(learning_rate=lr_schedule)
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_const,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_const_points = keras.optimizers.Adam(learning_rate=lr_schedule)
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_dmappr,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_demapper = keras.optimizers.Adam(learning_rate=lr_schedule)
     
 def reset_epochs():
     st.session_state.current_epoch = 0

@@ -38,32 +38,41 @@ def choice_M_fcn():
     st.session_state.cmap = ListedColormap(np.random.rand(st.session_state.M,3)/2+.5)
     st.session_state.gray_labels = tf.constant([[int(x) for x in f'{i:0{int(np.log2(st.session_state.M))}b}'] for i in range(st.session_state.M)], name="gray_labels",dtype=tf.float32)
     reset_epochs()
-    
+
 def choice_probs_fcn():
     if st.session_state.choice_probs == 'Don\'t learn':
         st.session_state.lr_probs = 0
     else:
-        st.session_state.lr_probs = 1e-2
+        st.session_state.lr_probs = .1
         reset_probs()
-    st.session_state.optimizer_log_probs = keras.optimizers.Adam(learning_rate=st.session_state.lr_probs)
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_probs,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_log_probs = keras.optimizers.Adam(learning_rate=lr_schedule)
     reset_epochs()
 
 def choice_const_fcn():
     if st.session_state.choice_const == 'Don\'t learn':
         st.session_state.lr_const = 0
     else:
-        st.session_state.lr_const = 1e-2
+        st.session_state.lr_const = .1
         reset_const()
-    st.session_state.optimizer_const_points = keras.optimizers.Adam(learning_rate=st.session_state.lr_const)
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_const,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_const_points = keras.optimizers.Adam(learning_rate=lr_schedule)
     reset_epochs()
 
 def choice_demapper_fcn():
     if st.session_state.choice_demapper == 'Min. Dist':
         st.session_state.lr_dmappr = 0
     else:
-        st.session_state.lr_dmappr = 1e-2
+        st.session_state.lr_dmappr = .1
     reset_demapper()
-    st.session_state.optimizer_demapper = keras.optimizers.Adam(learning_rate=st.session_state.lr_dmappr)
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_dmappr,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_demapper = keras.optimizers.Adam(learning_rate=lr_schedule)
     reset_epochs()
         
 def snr_update_fcn():
