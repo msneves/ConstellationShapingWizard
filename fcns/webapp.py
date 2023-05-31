@@ -14,7 +14,7 @@ import uuid
 
 def page_setup():
     # Set tab title and logo
-    st.set_page_config(page_title='Cont. Shaping Wizard : IT, Aveiro', layout = 'wide', page_icon = 'logo.ico', initial_sidebar_state='expanded' if st.session_state.get("paused", True) else 'auto')
+    st.set_page_config(page_title='Const. Shaping Wizard : IT, Aveiro', layout = 'wide', page_icon = 'logo.ico', initial_sidebar_state='expanded' if st.session_state.get("paused", True) else 'auto')
     st.experimental_set_query_params(embed='true')
     enable_scroll = """
                     <style>
@@ -42,7 +42,7 @@ def page_setup():
     st.sidebar.title('Constellation Shaping Wizard')
     st.sidebar.subheader('System options')
     st.sidebar.selectbox('Constellation Order',[4,8,16,32,64,128,256],key='M',on_change=choice_M_fcn,index=4)
-    st.sidebar.slider('SNR [dB]', 5,30,key='SNR_dB',on_change=snr_update_fcn,value=12)
+    st.sidebar.slider('SNR [dB]', 0.0, 30.0, key='SNR_dB',on_change=snr_update_fcn,value=12.0,step=0.25)
     st.sidebar.selectbox('Channel constraint',['APC','PPC'],key='norm_mode',on_change=reset_epochs())
     
     st.sidebar.subheader('Learning options')
@@ -82,8 +82,8 @@ def page_setup():
         
         # ML params
         st.session_state.batch_size = 10000
-        st.session_state.num_batches = 250
-        st.session_state.num_epochs = 2
+        st.session_state.num_batches = 100
+        st.session_state.num_epochs = 5
         st.session_state.batches_per_plot = 10
         st.session_state.lr_probs = 0
         st.session_state.lr_const = 0
