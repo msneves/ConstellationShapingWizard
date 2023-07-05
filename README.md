@@ -22,7 +22,7 @@ PhD Candidate at University of Aveiro, Scientific Researcher at Instituto de Tel
 
 In the host machine/server, run the following command to install the required packages:
 ```bash
-  pip install numpy tensorflow pandas matplotlib streamlit
+  pip install numpy tensorflow==2.8 pandas matplotlib streamlit==1.19
 ```
 
 After, just change your current working directory to: 
