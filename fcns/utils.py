@@ -31,3 +31,43 @@ def sample_dist(num_syms,probs):
     rand_unif = tf.random.uniform(shape=(num_syms,), minval=0.0, maxval=tf.reduce_max(cumulative_distncs), dtype=tf.float32)
     greater_than = tf.expand_dims(rand_unif, axis=-1)>tf.expand_dims(cumulative_distncs, axis=0)
     return tf.reduce_sum(tf.cast(greater_than, dtype=tf.int64), axis=1)
+
+# Given the signal, this function generates the IQ components of the residual phase noise
+def gen_rpn(sig,var):
+    rpn = tf.random.normal(shape=(sig.shape[0],),stddev=np.sqrt(var)) 
+    rpn = tf.stack([(tf.math.cos(rpn)-1)*sig[:,0]-tf.math.sin(rpn)*sig[:,1],
+                    tf.math.sin(rpn)*sig[:,0]+(tf.math.cos(rpn)-1)*sig[:,1]
+                    ],axis=1)
+    return rpn
+    
+# Function that quantizes signal
+def quantize(sig,qb):
+    
+    if qb>5:
+        return sig
+    
+    # Continuous quantization parameters
+    st.session_state.sf.assign(st.session_state.sf*.994)
+    s = np.pi/st.session_state.sf
+    
+    # scale sig
+    smax = tf.reduce_max(sig,axis=0)
+    smin = tf.reduce_min(sig,axis=0)
+    rang = smax-smin
+    sig = (sig-smin)/rang * ((2**qb) - 1)
+    
+    sigq = (tf.tanh((sig-.5)*s)+1)/2
+    
+    
+    j = tf.random.uniform(shape=sig.shape,minval=-st.session_state.sf,maxval=st.session_state.sf)
+    
+    for i in range(1,2**qb):
+        sigq += (tf.tanh((sig-(i+.5)+j)*s)+1)/2
+    
+    return (sigq+qb/(2**qb))/(2**qb)*rang+smin
+
+# Function that applies the modulation depth
+def apply_md(sig,md):
+    smax = tf.reduce_max(tf.math.abs(sig),axis=0)
+    sig = smax*tf.math.sin(sig/smax*md*np.pi/2)
+    return sig

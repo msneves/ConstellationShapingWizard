@@ -19,6 +19,7 @@ def reset_probs():
     else:
         reset_probs = np.random.randn(st.session_state.M)
     st.session_state.log_probs = tf.Variable(reset_probs, dtype=tf.float32, trainable = True, name="log_probs")
+    reset_epochs()
     
 def reset_const():
     if st.session_state.choice_const == 'Learn from square QAM' or st.session_state.choice_const == 'Don\'t learn':
@@ -26,6 +27,7 @@ def reset_const():
     else:
         reset_const = np.random.randn(st.session_state.M,2)
     st.session_state.const_points = tf.Variable(reset_const, dtype=tf.float32, trainable = True, name="const_points")
+    reset_epochs()
     
 def reset_demapper():
     inputs = keras.Input(shape=(2,), name="noisy_syms")
@@ -36,6 +38,7 @@ def reset_demapper():
         outputs = layers.Dense(np.log2(st.session_state.M), activation="sigmoid", name="rx_predictions")(outputs)
     
     st.session_state.demapper = keras.Model(inputs=inputs, outputs=outputs)
+    reset_epochs()
     
 
 def reset_optimizers():
@@ -54,3 +57,7 @@ def reset_optimizers():
     
 def reset_epochs():
     st.session_state.current_epoch = 0
+    st.session_state.current_bach = 0
+    
+def reset_sf():
+    st.session_state.sf = tf.Variable(1., dtype=tf.float32, trainable = False, name="sf")

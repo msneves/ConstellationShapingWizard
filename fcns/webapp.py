@@ -8,11 +8,14 @@ Portugal
 
 import streamlit as st
 import matplotlib.pyplot as plt
-from fcns.callbacks import learn_button_fcn,stop_button_fcn,reset_button_fcn,choice_M_fcn,snr_update_fcn,choice_const_fcn,choice_demapper_fcn,choice_probs_fcn
+from fcns.callbacks import learn_button_fcn,stop_button_fcn,reset_button_fcn,choice_M_fcn,snr_update_fcn,choice_const_fcn,choice_demapper_fcn,choice_probs_fcn,md_update_fcn,qb_update_fcn
 from fcns.resetters import reset_epochs
 import uuid
+import matplotlib as mpl
+
 
 def page_setup():
+    
     # Set tab title and logo
     st.set_page_config(page_title='Const. Shaping Wizard : IT, Aveiro', layout = 'wide', page_icon = 'logo.ico', initial_sidebar_state='expanded' if st.session_state.get("paused", True) else 'auto')
     st.experimental_set_query_params(embed='true')
@@ -41,15 +44,19 @@ def page_setup():
     # Selectboxes
     st.sidebar.title('Constellation Shaping Wizard')
     st.sidebar.subheader('System options')
-    st.sidebar.selectbox('Constellation Order',[4,8,16,32,64,128,256],key='M',on_change=choice_M_fcn,index=4)
-    st.sidebar.slider('SNR [dB]', 0.0, 30.0, key='SNR_dB',on_change=snr_update_fcn,value=12.0,step=0.25)
-    st.sidebar.selectbox('Channel constraint',['APC','PPC'],key='norm_mode',on_change=reset_epochs())
-    
+    st.sidebar.selectbox('Constellation Order',[4,8,16,32,64],key='M',on_change=choice_M_fcn,index=4)
+    st.sidebar.slider('SNR [dB]', 0.0, 30.0, key='SNR_dB',on_change=snr_update_fcn,value=18.0,step=0.25)
+    st.sidebar.selectbox('Channel constraint',['APC','PPC'],key='norm_mode',on_change=reset_epochs)
+    st.sidebar.markdown('Modulation depth')
+    st.session_state.md_stplot = st.sidebar.pyplot(st.session_state.get('md_fig',plt.subplots()[0]))
+    st.sidebar.slider('Vpp in', 0.1, 1.0, key='md',on_change=md_update_fcn,value=.3,step=.1)
+    st.sidebar.slider('Variance of the residual phase noise', 0.0, .05, key='var_phase_noise',on_change=reset_epochs,value=0.,step=.001)
+    st.sidebar.slider('Quantization bits (6 for Inf)',1,6,key='qb',on_change=qb_update_fcn,value=6)
     st.sidebar.subheader('Learning options')
-    st.sidebar.selectbox('Probabilistic Shaping',['Don\'t learn','Learn from uniform','Learn from random'],key='choice_probs',on_change=choice_probs_fcn,index=1)
+    st.sidebar.selectbox('Probabilistic Shaping',['Don\'t learn','Learn from uniform','Learn from random'],key='choice_probs',on_change=choice_probs_fcn,index=0)
     st.sidebar.selectbox('Geometric Shaping',['Don\'t learn','Learn from square QAM','Learn from random'],key='choice_const',on_change=choice_const_fcn,index=0)
-    st.sidebar.selectbox('Demapper',['NN Symwise','NN Bitwise','Min. Dist'],key='choice_demapper',on_change=choice_demapper_fcn,index=1)
-    st.sidebar.selectbox('Loss function',['CE','MSE','MI','GMI'],key='loss_fcn', on_change=reset_epochs(),index=3)
+    st.sidebar.selectbox('Demapper',['NN Symwise','NN Bitwise','Min. Dist'],key='choice_demapper',on_change=choice_demapper_fcn,index=2)
+    st.sidebar.selectbox('Loss function',['CE','MSE','MI','GMI'],key='loss_fcn', on_change=reset_epochs,index=3)
     
         
     st.session_state.learn_probs = not st.session_state.choice_probs == 'Don\'t learn'
@@ -79,11 +86,13 @@ def page_setup():
         st.session_state.stplot = plot_area.pyplot(st.session_state.fig)
         st.session_state.progress = st.progress(0)
         st.session_state.sttable = st.table()
+        st.session_state.md_fig, st.session_state.md_ax = plt.subplots(frameon=False,figsize=(3, 1.5))
+
         
         # ML params
         st.session_state.batch_size = 10000
         st.session_state.num_batches = 100
-        st.session_state.num_epochs = 5
+        st.session_state.num_epochs = 10
         st.session_state.batches_per_plot = 10
         st.session_state.lr_probs = 0
         st.session_state.lr_const = 0
@@ -94,6 +103,7 @@ def page_setup():
         
         # set default values
         snr_update_fcn()
+        md_update_fcn()
         choice_M_fcn()
         choice_probs_fcn()
         choice_const_fcn()

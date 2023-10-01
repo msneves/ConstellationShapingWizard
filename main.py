@@ -9,10 +9,10 @@ import tensorflow as tf
 import streamlit as st
 import numpy as np
 from fcns.webapp import page_setup
-from fcns.utils import sample_dist
+from fcns.utils import sample_dist,gen_rpn,quantize,apply_md
 from fcns.resetters import reset_optimizers
 from fcns.plots import plot
-from fcns.normalizations import norm_const
+from fcns.normalizations import norm,norm_const,sig_pow,const_pow
 from fcns.demapper import demapper
 from fcns.losses import metrics_fcn
 
@@ -41,20 +41,41 @@ def train_step():
         # Turning the indexes into one-hot vectors
         one_hot_syms = tf.one_hot(sampled_syms_idx, st.session_state.M)       
         
-        # Normalizing APC or PPC
-        const_points_n = norm_const(st.session_state.const_points,probs)
-
         # Mapping
+        const_points_n = norm_const(st.session_state.const_points,probs)
         syms = tf.matmul(one_hot_syms,const_points_n)
         
-        # AWGN channel
-        syms_noisy = syms + tf.random.normal(shape=syms.shape,stddev=np.sqrt(st.session_state.var_1d_noise))
-
-        # Demapper
-        rx_syms = demapper(syms_noisy,probs)
+        # Channel starts here
         
-        # Compute performance metrics 
-        H, MI, GMI, MSE, CE = metrics_fcn(probs, sampled_syms_idx, one_hot_syms, rx_syms, const_points_n, syms_noisy)
+        # Quantizing
+        syms_channel = quantize(syms, st.session_state.qb)
+        
+        if st.session_state.norm_mode == 'APC':
+            # If APC, first apply nonlinearity then normalize 
+            syms_channel = apply_md(syms_channel,st.session_state.md)
+            syms_channel = syms_channel*tf.sqrt(const_pow(const_points_n,probs)/const_pow(apply_md(const_points_n,st.session_state.md),probs))
+        else:
+            # If PPC, first normalize then apply nonlinearity 
+            syms_channel = norm(syms_channel)
+            syms_channel = apply_md(syms_channel,st.session_state.md)
+        
+        
+        
+        # Residual LPN noise
+        syms_channel = syms_channel + gen_rpn(syms_channel,st.session_state.var_phase_noise)
+        
+        # AWGN channel
+        syms_channel = syms_channel + tf.random.normal(shape=syms.shape,stddev=np.sqrt(st.session_state.var_1d_noise))
+        
+        # Normalize signal 
+        syms_channel = norm(syms_channel)
+        
+        # Demapper
+        n_var = sig_pow(syms-syms_channel)
+        rx_syms = demapper(syms_channel,probs,n_var)
+        
+        # Compute performance metrics
+        H, MI, GMI, MSE, CE = metrics_fcn(probs, sampled_syms_idx, one_hot_syms, n_var, rx_syms, const_points_n, syms_channel)
         
         st.session_state.H = H
         st.session_state.MI = MI
@@ -88,7 +109,7 @@ def train_step():
         grads_demapper = tape.gradient(loss_value, st.session_state.demapper.trainable_weights)
         st.session_state.optimizer_demapper.apply_gradients(zip(grads_demapper, st.session_state.demapper.trainable_weights))
 
-    return loss_value, H, MI, GMI    
+    return loss_value, H, MI, GMI, syms_channel,n_var
 
 
 #############################################################
@@ -111,12 +132,14 @@ while(st.session_state.learning and st.session_state.current_epoch<st.session_st
         st.session_state.progress.progress((st.session_state.current_batch+st.session_state.num_batches*st.session_state.current_epoch)/(st.session_state.num_batches*st.session_state.num_epochs))
         
         # Iterate over system
-        st.session_state.current_loss,st.session_state.H,st.session_state.MI,st.session_state.GMI = train_step()
+        st.session_state.current_loss,st.session_state.H,st.session_state.MI,st.session_state.GMI,sig,n_var = train_step()
         st.session_state.current_batch += 1
     
     # Plot dynamic results
     if not st.session_state.current_batch%st.session_state.batches_per_plot:
-        plot()
+        plot(sig,n_var)
+        st.session_state.sig = sig
+        st.session_state.n_var = n_var
     
     # Log status:
     print(f'SESS{st.session_state.session_id}:EP{st.session_state.current_epoch}:BA{st.session_state.current_batch}:LO{st.session_state.current_loss}')
@@ -133,7 +156,7 @@ if st.session_state.learning and st.session_state.current_epoch == st.session_st
 
 # Plot current results when paused
 if st.session_state.paused:
-    plot()
+    plot(st.session_state.sig,st.session_state.n_var)
 
     
 

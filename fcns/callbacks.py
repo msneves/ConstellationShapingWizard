@@ -11,11 +11,12 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from matplotlib.colors import ListedColormap
-from fcns.resetters import reset_probs,reset_const,reset_demapper,reset_epochs
+from fcns.resetters import reset_probs,reset_const,reset_demapper,reset_epochs,reset_sf,reset_sf
 
 def learn_button_fcn():
     st.session_state.learning = True
     st.session_state.paused = False
+    reset_epochs()
 
 def stop_button_fcn():
     st.session_state.learning = False
@@ -30,6 +31,7 @@ def reset_button_fcn():
     choice_probs_fcn()
     choice_const_fcn()
     choice_demapper_fcn()
+    reset_sf()
 
 def choice_M_fcn():
     reset_probs()
@@ -38,6 +40,7 @@ def choice_M_fcn():
     st.session_state.cmap = ListedColormap(np.random.rand(st.session_state.M,3)/2+.5)
     st.session_state.gray_labels = tf.constant([[int(x) for x in f'{i:0{int(np.log2(st.session_state.M))}b}'] for i in range(st.session_state.M)], name="gray_labels",dtype=tf.float32)
     reset_epochs()
+    reset_sf()
 
 def choice_probs_fcn():
     if st.session_state.choice_probs == 'Don\'t learn':
@@ -50,6 +53,7 @@ def choice_probs_fcn():
                                                               decay_rate=0.95)
     st.session_state.optimizer_log_probs = keras.optimizers.Adam(learning_rate=lr_schedule)
     reset_epochs()
+    reset_sf()
 
 def choice_const_fcn():
     if st.session_state.choice_const == 'Don\'t learn':
@@ -62,6 +66,7 @@ def choice_const_fcn():
                                                               decay_rate=0.95)
     st.session_state.optimizer_const_points = keras.optimizers.Adam(learning_rate=lr_schedule)
     reset_epochs()
+    reset_sf()
 
 def choice_demapper_fcn():
     if st.session_state.choice_demapper == 'Min. Dist':
@@ -77,4 +82,24 @@ def choice_demapper_fcn():
         
 def snr_update_fcn():
     st.session_state.var_1d_noise = 10**(-st.session_state.SNR_dB/10)/2
+    reset_epochs()
+    
+def md_update_fcn():
+    st.session_state.md_ax.clear()
+    st.session_state.md_ax.axis('off')
+    st.session_state.md_ax.plot(np.linspace(0,1,20),np.linspace(0,1,20),c=(.29,.29,.29), linestyle='dashed')
+    st.session_state.md_ax.plot(np.linspace(0,1,20),np.sin(np.linspace(0,1,20)*np.pi/2)/np.pi*2,c=(.95,.95,.95))
+    st.session_state.md_ax.vlines(x=st.session_state.md, ymin=0, ymax=np.sin(st.session_state.md*np.pi/2)/np.pi*2, linestyles='dashed',color=(.29,.29,.29))
+    st.session_state.md_ax.plot([0,st.session_state.md],[np.sin(st.session_state.md*np.pi/2)/np.pi*2]*2,c=(.29,.29,.29), linestyle='dashed')
+    st.session_state.md_ax.scatter(st.session_state.md,np.sin(st.session_state.md*np.pi/2)/np.pi*2,marker='o',s=100,c=[(1,0.29,0.29,1)])
+    st.session_state.md_ax.text(0,np.sin(st.session_state.md*np.pi/2)/np.pi*2,f'Vppo = {np.sin(st.session_state.md*np.pi/2)/np.pi*2/st.session_state.md:.1f} Vppi',color=(.95,.95,.95))
+    st.session_state.md_ax.set_xlim((0,1))
+    st.session_state.md_ax.set_ylim((0,1))
+    st.session_state.md_stplot.pyplot(st.session_state.md_fig)
+    reset_epochs()
+    reset_sf()
+    
+def qb_update_fcn():
+    reset_sf()
+    reset_const()
     reset_epochs()

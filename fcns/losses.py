@@ -12,13 +12,14 @@ import streamlit as st
 from fcns.utils import gaussian2d_pdf,bit2sym_likelihoods,sym2bit_likelihoods
 
 # Function to compute mutual information (MI) and generalized MI (GMI)
-def gmi_eval(probs,x,x_onehot,y,const_points_n,syms_noisy):
+def gmi_eval(probs,x,x_onehot,n_var,y,const_points_n,syms_noisy):
     
     # Entropy
     H = - tf.reduce_sum(probs*tf.math.log(probs+tf.keras.backend.epsilon())/tf.math.log(tf.constant(2,dtype=tf.float32)))
     
     # Analytical -- Assumes Gaussian Dist 
-    P_Y_X = gaussian2d_pdf(st.session_state.var_1d_noise, const_points_n, syms_noisy)
+    P_Y_X = gaussian2d_pdf(n_var/2, const_points_n, syms_noisy)
+    # P_Y_X = gaussian2d_pdf(st.session_state.var_1d_noise, const_points_n, syms_noisy)
     
     ## For MI
     if 'Bitwise' in st.session_state.choice_demapper:
@@ -57,16 +58,16 @@ def mse_eval(tx_y,rx_y):
 
 # Function to compute categorical cross-entropy (CCE)
 def cce(tx_y,rx_y):
-    return keras.losses.CategoricalCrossentropy()(tx_y,rx_y)
+    return -tf.reduce_sum(tx_y * tf.math.log(rx_y + 1e-10))
 
 # Function to compute binary cross-entropy (BCE)
 def bce(tx_y,rx_y):
     return keras.losses.BinaryCrossentropy(axis=-2)(tx_y,rx_y)
 
 # Function that, given a batch, returns the metrics for it, namely H, MI, GMI, MSE and CE
-def metrics_fcn(probs,x,x_onehot,y,const_points_n,syms_noisy):
+def metrics_fcn(probs,x,x_onehot,n_var,y,const_points_n,syms_noisy):
     
-    H,MI,GMI = gmi_eval(probs, x, x_onehot, y, const_points_n, syms_noisy)
+    H,MI,GMI = gmi_eval(probs, x, x_onehot, n_var, y, const_points_n, syms_noisy)
     
     if not 'Bitwise' in st.session_state.choice_demapper:     
         MSE = mse_eval(x_onehot, y)
