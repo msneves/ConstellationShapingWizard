@@ -15,6 +15,7 @@ from fcns.normalizations import norm,norm_const,sig_pow,const_pow
 from fcns.filters import pulse_shape,matched_filter,channel_bw_limitation
 from fcns.demapper import demapper
 from fcns.losses import metrics_fcn
+from time import sleep
 
 #############################################################
 ## Page Setup ###############################################
@@ -162,6 +163,8 @@ while(st.session_state.learning and st.session_state.current_epoch<st.session_st
         plot_filters()
         st.session_state.sig = sig
         st.session_state.n_var = n_var
+        sleep(.25)
+        
     
     # Log status:
     print(f'SESS{st.session_state.session_id}:EP{st.session_state.current_epoch}:BA{st.session_state.current_batch}:LO{st.session_state.current_loss}')
