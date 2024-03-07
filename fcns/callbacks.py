@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from matplotlib.colors import ListedColormap
-from fcns.resetters import reset_probs,reset_const,reset_demapper,reset_epochs,reset_sf,reset_sf
+from fcns.resetters import reset_probs,reset_const,reset_demapper,reset_epochs,reset_sf,reset_ps,reset_mf
 
 def learn_button_fcn():
     st.session_state.learning = True
@@ -32,6 +32,8 @@ def reset_button_fcn():
     choice_const_fcn()
     choice_demapper_fcn()
     reset_sf()
+    reset_ps()
+    reset_mf()
 
 def choice_M_fcn():
     reset_probs()
@@ -40,7 +42,6 @@ def choice_M_fcn():
     st.session_state.cmap = ListedColormap(np.random.rand(st.session_state.M,3)/2+.5)
     st.session_state.gray_labels = tf.constant([[int(x) for x in f'{i:0{int(np.log2(st.session_state.M))}b}'] for i in range(st.session_state.M)], name="gray_labels",dtype=tf.float32)
     reset_epochs()
-    reset_sf()
 
 def choice_probs_fcn():
     if st.session_state.choice_probs == 'Don\'t learn':
@@ -53,7 +54,7 @@ def choice_probs_fcn():
                                                               decay_rate=0.95)
     st.session_state.optimizer_log_probs = keras.optimizers.Adam(learning_rate=lr_schedule)
     reset_epochs()
-    reset_sf()
+
 
 def choice_const_fcn():
     if st.session_state.choice_const == 'Don\'t learn':
@@ -66,7 +67,6 @@ def choice_const_fcn():
                                                               decay_rate=0.95)
     st.session_state.optimizer_const_points = keras.optimizers.Adam(learning_rate=lr_schedule)
     reset_epochs()
-    reset_sf()
 
 def choice_demapper_fcn():
     if st.session_state.choice_demapper == 'Min. Dist':
@@ -79,10 +79,59 @@ def choice_demapper_fcn():
                                                               decay_rate=0.95)
     st.session_state.optimizer_demapper = keras.optimizers.Adam(learning_rate=lr_schedule)
     reset_epochs()
+    
+def choice_ps_fcn():
+    if not 'Learn' in st.session_state.choice_ps:
+        st.session_state.lr_ps = 0
+    else:
+        st.session_state.lr_ps = .1
+    reset_ps()
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_ps,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_ps = keras.optimizers.Adam(learning_rate=lr_schedule)
+    reset_epochs()
+    
+def choice_mf_fcn():
+    if not 'Learn' in st.session_state.choice_mf:
+        st.session_state.lr_mf = 0
+    else:
+        st.session_state.lr_mf = .1
+    reset_mf()
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_mf,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_mf = keras.optimizers.Adam(learning_rate=lr_schedule)
+    reset_epochs()
         
 def snr_update_fcn():
     st.session_state.var_1d_noise = 10**(-st.session_state.SNR_dB/10)/2
     reset_epochs()
+    
+def ntaps_update_fcn():
+    st.session_state.ntaps_ps = st.session_state.ntaps
+    st.session_state.ntaps_mf = st.session_state.ntaps
+    reset_ps()
+    reset_mf()
+    reset_epochs()
+    
+def bw_update_fcn():
+    bw = st.session_state.bw
+    
+    if bw == 1:
+        bw = .999
+    
+    # change to 2nd order gaussian filter
+    ff = np.linspace(-.5,.5,200)
+    freq_taps = np.fft.fftshift(np.exp(-np.log(np.sqrt(2))*(2/bw*ff)**(2*2)))
+    
+    filter_taps = np.roll(np.fft.fftshift(np.fft.ifft(freq_taps)),-1)
+    
+    tmp_taps = np.zeros((len(filter_taps),1))
+    tmp_taps[:,0] = filter_taps.real
+    st.session_state.taps_bw = tf.Variable(tmp_taps,dtype=tf.float32,trainable=True)
+    reset_epochs()
+    
     
 def md_update_fcn():
     st.session_state.md_ax.clear()
@@ -97,9 +146,7 @@ def md_update_fcn():
     st.session_state.md_ax.set_ylim((0,1))
     st.session_state.md_stplot.pyplot(st.session_state.md_fig)
     reset_epochs()
-    reset_sf()
     
 def qb_update_fcn():
-    reset_sf()
     reset_const()
     reset_epochs()

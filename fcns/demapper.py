@@ -30,5 +30,3 @@ def demapper(rx_syms, probs, n_var):
         rx_syms = demapper_std(rx_syms, probs, n_var)
         
     return rx_syms
-
-# This function returns the error vector from the demapping process

@@ -48,26 +48,27 @@ def quantize(sig,qb):
     
     # Continuous quantization parameters
     st.session_state.sf.assign(st.session_state.sf*.994)
-    s = np.pi/st.session_state.sf
+    s = np.pi/(st.session_state.sf + 0.5)
+    print('sf:',st.session_state.sf) 
     
     # scale sig
-    smax = tf.reduce_max(sig,axis=0)
-    smin = tf.reduce_min(sig,axis=0)
+    smax = tf.reduce_mean(tf.transpose(tf.math.top_k(tf.transpose(sig),k=10)[0]),axis=0)
+    smin = tf.reduce_mean(-tf.transpose(tf.math.top_k(tf.transpose(-sig),k=10)[0]),axis=0)
     rang = smax-smin
+    
     sig = (sig-smin)/rang * ((2**qb) - 1)
-    
-    sigq = (tf.tanh((sig-.5)*s)+1)/2
-    
     
     j = tf.random.uniform(shape=sig.shape,minval=-st.session_state.sf,maxval=st.session_state.sf)
     
-    for i in range(1,2**qb):
-        sigq += (tf.tanh((sig-(i+.5)+j)*s)+1)/2
+    sigq = (tf.tanh((sig-.5)*s+j)+1)/2
     
-    return (sigq+qb/(2**qb))/(2**qb)*rang+smin
+    for i in range(1,2**qb):
+        sigq += (tf.tanh((sig-(i+.5))*s+j)+1)/2
+    
+    return sigq/(2**qb - 1)*rang+smin
 
 # Function that applies the modulation depth
 def apply_md(sig,md):
     smax = tf.reduce_max(tf.math.abs(sig),axis=0)
-    sig = smax*tf.math.sin(sig/smax*md*np.pi/2)
+    sig = smax*tf.math.sin(sig/smax*md*np.pi/2)*2/np.pi
     return sig

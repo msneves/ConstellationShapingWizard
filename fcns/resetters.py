@@ -12,6 +12,7 @@ import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
 from fcns.qam import qam
+from commpy.filters import rrcosfilter
 
 def reset_probs():
     if st.session_state.choice_probs == 'Learn from uniform' or st.session_state.choice_probs == 'Don\'t learn':
@@ -54,10 +55,50 @@ def reset_optimizers():
                                                               decay_steps=20,
                                                               decay_rate=0.95)
     st.session_state.optimizer_demapper = keras.optimizers.Adam(learning_rate=lr_schedule)
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_ps,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_ps = keras.optimizers.Adam(learning_rate=lr_schedule)
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=st.session_state.lr_mf,
+                                                              decay_steps=20,
+                                                              decay_rate=0.95)
+    st.session_state.optimizer_mf = keras.optimizers.Adam(learning_rate=lr_schedule)
     
 def reset_epochs():
     st.session_state.current_epoch = 0
     st.session_state.current_bach = 0
+    reset_sf()
+
+def reset_ps():
+    st.session_state.ntaps_ps = st.session_state.ntaps
+    if 'RRC' in st.session_state.choice_ps:
+        tmp_taps = np.zeros((st.session_state.ntaps_ps,1))
+        rrcos_taps = rrcosfilter(st.session_state.ntaps_ps+1, 0.1, 1, 2)[1][1:]
+        tmp_taps[:,0] = rrcos_taps
+    elif 'square' in st.session_state.choice_ps:
+        tmp_taps = np.zeros((st.session_state.ntaps_ps,1))
+        tmp_taps[:,0] = [0]*(st.session_state.ntaps_ps//2) + [1] + [0]*(st.session_state.ntaps_ps//2)
+    else:
+        tmp_taps = np.random.randn(st.session_state.ntaps_ps,1)
+        
+    st.session_state.taps_ps = tf.Variable(tmp_taps,dtype=tf.float32,trainable=True)
+    reset_epochs()
+    
+def reset_mf():
+    st.session_state.ntaps_mf = st.session_state.ntaps
+    if 'RRC' in st.session_state.choice_mf:
+        tmp_taps = np.zeros((st.session_state.ntaps_mf,1))
+        rrcos_taps = rrcosfilter(st.session_state.ntaps_mf+1, 0.1, 1, 2)[1][1:]
+        tmp_taps[:,0] = rrcos_taps
+    elif 'square' in st.session_state.choice_mf:
+        tmp_taps = np.zeros((st.session_state.ntaps_mf,1))
+        tmp_taps[:,0] = [0]*(st.session_state.ntaps_mf//2) + [1] + [0]*(st.session_state.ntaps_mf//2)
+    else:
+        tmp_taps = np.random.randn(st.session_state.ntaps_mf,1)
+        
+    st.session_state.taps_mf = tf.Variable(tmp_taps,dtype=tf.float32,trainable=True)
+    reset_epochs()
+  
     
 def reset_sf():
     st.session_state.sf = tf.Variable(1., dtype=tf.float32, trainable = False, name="sf")

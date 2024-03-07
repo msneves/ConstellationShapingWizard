@@ -12,10 +12,10 @@ import numpy as np
 import pandas as pd
 from fcns.demapper import demapper
 from fcns.normalizations import sig_pow
-import matplotlib.pyplot as plt
 from time import sleep
+from scipy.signal import freqz
 
-def plot(sig,n_var):
+def plot_const(sig,n_var):
     st.session_state.ax.clear()
     
     probs = tf.nn.softmax(st.session_state.log_probs).numpy()
@@ -61,7 +61,7 @@ def plot(sig,n_var):
                                   f'GMI = {max(0,st.session_state.GMI):0.2f}, ' + \
                                   f'Teor. Shan. Lim. = {np.log2(1+1/(2*st.session_state.var_1d_noise)):0.2f}, ' + \
                                   f'SNR_eff = {10*np.log10(sig_pow(sig)/n_var):0.2f} dB, ' + \
-                                  f'Eff. Shan. Lim. = {np.log2(1+1/n_var):0.2f}' \
+                                  f'Eff. Shan. Lim. = {np.log2(1+sig_pow(sig)/n_var):0.2f}' \
                                     , color='white')
     st.session_state.ax.axis('off')
     
@@ -72,3 +72,31 @@ def plot(sig,n_var):
     st.session_state.sttable.table(df)
     
     sleep(.2)
+    
+def plot_filters():
+    st.session_state.ax_filters[0].clear()
+    st.session_state.ax_filters[0].set_title('Tx and Rx Filter Taps (Time)')
+    st.session_state.ax_filters[0].title.set_color('white')
+    st.session_state.ax_filters[0].stem(np.arange(st.session_state.ntaps_ps)-st.session_state.ntaps_ps//2,st.session_state.taps_ps/tf.reduce_max(st.session_state.taps_ps), 'b', markerfmt='bo',label='PS')
+    st.session_state.ax_filters[0].stem(np.arange(st.session_state.ntaps_mf)-st.session_state.ntaps_mf//2,st.session_state.taps_mf/tf.reduce_max(st.session_state.taps_mf), 'y', markerfmt='yo',label='MF')
+    st.session_state.ax_filters[0].legend()
+    
+    st.session_state.ax_filters[1].clear()
+    st.session_state.ax_filters[1].set_title('Tx and Rx Filter Taps (Freq)')
+    st.session_state.ax_filters[1].title.set_color('white')
+    w, h = freqz(st.session_state.taps_bw, worN=100, fs=2) 
+    frequency_response = 20 * np.log10(abs(h))
+    frequency_response -= max(frequency_response)
+    st.session_state.ax_filters[1].plot(w, frequency_response, 'w',label='Channel')
+    w, h = freqz(st.session_state.taps_ps, worN=100, fs=2) 
+    frequency_response = 20 * np.log10(abs(h))
+    frequency_response -= max(frequency_response)
+    st.session_state.ax_filters[1].plot(w, frequency_response, 'b',label='PS')
+    w, h = freqz(st.session_state.taps_mf, worN=100, fs=2) 
+    frequency_response = 20 * np.log10(abs(h))
+    frequency_response -= max(frequency_response)
+    st.session_state.ax_filters[1].plot(w, frequency_response, 'y',label='MF')
+    st.session_state.ax_filters[1].legend()
+    
+    
+    st.session_state.stplot_filters.pyplot(st.session_state.fig_filters)
