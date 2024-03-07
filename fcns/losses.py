@@ -19,7 +19,6 @@ def gmi_eval(probs,x,x_onehot,n_var,y,const_points_n,syms_noisy):
     
     # Analytical -- Assumes Gaussian Dist 
     P_Y_X = gaussian2d_pdf(n_var/2, const_points_n, syms_noisy)
-    # P_Y_X = gaussian2d_pdf(st.session_state.var_1d_noise, const_points_n, syms_noisy)
     
     ## For MI
     if 'Bitwise' in st.session_state.choice_demapper:

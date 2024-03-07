@@ -11,7 +11,11 @@ import streamlit as st
 
 # This function normallizes the constellation
 def norm_const(const,probs):
-    return const/tf.math.sqrt(const_pow(const,probs))
+    
+    if st.session_state.norm_mode == 'APC':
+        return const/tf.math.sqrt(const_pow(const,probs))
+    else:
+        return const/tf.math.reduce_max(tf.math.abs(const),axis=-2)
 
 # This function computes the power of the constellation, weigthed with the probabilities
 def const_pow(const,probs):
