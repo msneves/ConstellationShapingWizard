@@ -15,7 +15,6 @@ from fcns.normalizations import norm,norm_const,sig_pow,const_pow
 from fcns.filters import pulse_shape,matched_filter,channel_bw_limitation
 from fcns.demapper import demapper
 from fcns.losses import metrics_fcn
-from time import sleep
 
 #############################################################
 ## Page Setup ###############################################
@@ -129,8 +128,6 @@ def train_step():
     if st.session_state.lr_mf>0:
         grads_mf = tape.gradient(loss_value, st.session_state.taps_mf)
         st.session_state.optimizer_mf.apply_gradients([(grads_mf, st.session_state.taps_mf)])
-        
-    print('taps_mf',st.session_state.taps_mf)
 
     return loss_value, H, MI, GMI, syms_channel,n_var
 
@@ -163,8 +160,6 @@ while(st.session_state.learning and st.session_state.current_epoch<st.session_st
         plot_filters()
         st.session_state.sig = sig
         st.session_state.n_var = n_var
-        sleep(.25)
-        
     
     # Log status:
     print(f'SESS{st.session_state.session_id}:EP{st.session_state.current_epoch}:BA{st.session_state.current_batch}:LO{st.session_state.current_loss}')

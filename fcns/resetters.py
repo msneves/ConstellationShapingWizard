@@ -72,14 +72,16 @@ def reset_epochs():
 def reset_ps():
     st.session_state.ntaps_ps = st.session_state.ntaps
     if 'RRC' in st.session_state.choice_ps:
-        tmp_taps = np.zeros((st.session_state.ntaps_ps,1))
+        tmp_taps = np.zeros((st.session_state.ntaps_ps,2,2))
         rrcos_taps = rrcosfilter(st.session_state.ntaps_ps+1, 0.1, 1, 2)[1][1:]
-        tmp_taps[:,0] = rrcos_taps
+        tmp_taps[:,0,0] = rrcos_taps
+        tmp_taps[:,1,1] = rrcos_taps
     elif 'square' in st.session_state.choice_ps:
-        tmp_taps = np.zeros((st.session_state.ntaps_ps,1))
-        tmp_taps[:,0] = [0]*(st.session_state.ntaps_ps//2) + [1] + [0]*(st.session_state.ntaps_ps//2)
+        tmp_taps = np.zeros((st.session_state.ntaps_ps,2,2))
+        tmp_taps[:,0,0] = [0]*(st.session_state.ntaps_ps//2) + [1,1][:st.session_state.ntaps_ps] + [0]*(st.session_state.ntaps_ps//2 - 1)
+        tmp_taps[:,1,1] = [0]*(st.session_state.ntaps_ps//2) + [1,1][:st.session_state.ntaps_ps] + [0]*(st.session_state.ntaps_ps//2 - 1)
     else:
-        tmp_taps = np.random.randn(st.session_state.ntaps_ps,1)
+        tmp_taps = np.random.randn(st.session_state.ntaps_ps,2,2)
         
     st.session_state.taps_ps = tf.Variable(tmp_taps,dtype=tf.float32,trainable=True)
     reset_epochs()
@@ -87,14 +89,16 @@ def reset_ps():
 def reset_mf():
     st.session_state.ntaps_mf = st.session_state.ntaps
     if 'RRC' in st.session_state.choice_mf:
-        tmp_taps = np.zeros((st.session_state.ntaps_mf,1))
+        tmp_taps = np.zeros((st.session_state.ntaps_mf,2,2))
         rrcos_taps = rrcosfilter(st.session_state.ntaps_mf+1, 0.1, 1, 2)[1][1:]
-        tmp_taps[:,0] = rrcos_taps
+        tmp_taps[:,0,0] = rrcos_taps
+        tmp_taps[:,1,1] = rrcos_taps
     elif 'square' in st.session_state.choice_mf:
-        tmp_taps = np.zeros((st.session_state.ntaps_mf,1))
-        tmp_taps[:,0] = [0]*(st.session_state.ntaps_mf//2) + [1] + [0]*(st.session_state.ntaps_mf//2)
+        tmp_taps = np.zeros((st.session_state.ntaps_mf,2,2))
+        tmp_taps[:,0,0] = [0]*(st.session_state.ntaps_mf//2 - 1) + [1,1][:st.session_state.ntaps_mf] + [0]*(st.session_state.ntaps_mf//2)
+        tmp_taps[:,1,1] = [0]*(st.session_state.ntaps_mf//2 - 1) + [1,1][:st.session_state.ntaps_mf] + [0]*(st.session_state.ntaps_mf//2)
     else:
-        tmp_taps = np.random.randn(st.session_state.ntaps_mf,1)
+        tmp_taps = np.random.randn(st.session_state.ntaps_mf,2,2)
         
     st.session_state.taps_mf = tf.Variable(tmp_taps,dtype=tf.float32,trainable=True)
     reset_epochs()

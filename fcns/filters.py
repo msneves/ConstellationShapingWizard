@@ -50,12 +50,12 @@ def channel_bw_limitation(sig):
 def _filter(sig,taps):
     # Add an extra dimension to the signal to match the input requirements of tf.nn.conv1d
     sig = tf.expand_dims(sig, axis=0)
-    taps = tf.expand_dims(taps, axis=-1)
-    tmp_taps = tf.zeros_like(taps)
-    tmp_taps = tf.concat([tf.concat([taps, tmp_taps], axis=1),tf.concat([tmp_taps, taps], axis=1)], axis=2)
+    
+    # Add an extra dimension to the filter to match the input requirements of tf.nn.conv1d
+    # taps = tf.expand_dims(taps, axis=0)
     
     # Perform the convolution to apply the filter
-    filtered_sig = tf.nn.conv1d(sig, tmp_taps, stride=1, padding='SAME')
+    filtered_sig = tf.nn.conv1d(sig, taps, stride=1, padding='SAME')
     
     # Remove the extra dimension added to the signal
     filtered_sig = tf.squeeze(filtered_sig, axis=0)

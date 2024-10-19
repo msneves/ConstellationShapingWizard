@@ -17,7 +17,15 @@ def page_setup():
     
     # Set tab title and logo
     st.set_page_config(page_title='Const. Shaping Wizard : IT, Aveiro', layout = 'wide', page_icon = 'logo.ico', initial_sidebar_state='expanded' if st.session_state.get("paused", True) else 'auto')
-    st.experimental_set_query_params(embed='true')
+    # st.experimental_set_query_params(embed='true')
+    
+    st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
     enable_scroll = """
                     <style>
                     .main {
@@ -47,7 +55,8 @@ def page_setup():
     st.sidebar.slider('Vpp in', 0.1, 1.0, key='md',on_change=md_update_fcn,value=.3,step=.1)
     st.sidebar.slider('Variance of the residual phase noise', 0.0, .05, key='var_phase_noise',on_change=reset_epochs,value=0.,step=.001)
     st.sidebar.slider('Quantization bits (6 for Inf)',1,6,key='qb',on_change=qb_update_fcn,value=6)
-    st.sidebar.slider('Normalized Channel Bandwidth',.1,.999,key='bw',on_change=bw_update_fcn,value=.999)
+    st.sidebar.slider('Normalized Channel Bandwidth (Analog)',.1,.999,key='abw',on_change=bw_update_fcn,value=.999)
+    st.sidebar.slider('Normalized Channel Bandwidth (Digital)',.1,.999,key='dbw',on_change=bw_update_fcn,value=.999)
     st.sidebar.subheader('Learning options')
     st.sidebar.selectbox('Probabilistic Shaping',['Don\'t learn','Learn from uniform','Learn from random'],key='choice_probs',on_change=choice_probs_fcn,index=0)
     st.sidebar.selectbox('Geometric Shaping',['Don\'t learn','Learn from square QAM','Learn from random'],key='choice_const',on_change=choice_const_fcn,index=0)
