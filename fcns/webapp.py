@@ -110,40 +110,40 @@ def page_setup():
     st.session_state.ax_filters[1].tick_params(axis='y', colors='white')
     st.session_state.stplot_filters = plot_filters_area.pyplot(st.session_state.fig_filters)
     
-    
-    # Create a download button for the pulse shaper and mf
-    resize = 0.7
-    _, download_button1_area, download_button2_area, _ = st.columns((.5, resize / (1 - resize)/2, resize / (1 - resize)/2, .5), gap="small")
-    var = getattr(st.session_state,'taps_ps',None)
-    if var is not None:
-        buffer = io.StringIO()
-        var = np.array(var.numpy()).reshape((-1,))
-        np.savetxt(buffer, var, delimiter=',')
-        buffer.seek(0)
-        download_button1_area.download_button(
-            label="Download Pulse Shaper as CSV",
-            data=buffer.getvalue(),
-            file_name='pulse_shaper_taps.csv',
-            mime='text/csv'
-        )
-        var = getattr(st.session_state,'taps_mf',None)
-        buffer = io.StringIO()
-        var = np.array(var.numpy()).reshape((-1,))
-        np.savetxt(buffer, var, delimiter=',')
-        buffer.seek(0)
-        download_button2_area.download_button(
-            label="Download Matched Filter as CSV",
-            data=buffer.getvalue(),
-            file_name='matched_filter_taps.csv',
-            mime='text/csv'
-        )
-    
+    if not getattr(st.session_state, "learning", False) and getattr(st.session_state, "paused", False):
+        # Create a download button for the pulse shaper and mf
+        resize = 0.7
+        _, download_button1_area, download_button2_area, _ = st.columns((.5, resize / (1 - resize)/2, resize / (1 - resize)/2, .5), gap="small")
+        var = getattr(st.session_state,'taps_ps',None)
+        if var is not None:
+            buffer = io.StringIO()
+            var = np.array(var.numpy()).reshape((-1,))
+            np.savetxt(buffer, var, delimiter=',')
+            buffer.seek(0)
+            download_button1_area.download_button(
+                label="Download Pulse Shaper as CSV",
+                data=buffer.getvalue(),
+                file_name='pulse_shaper_taps.csv',
+                mime='text/csv'
+            )
+            var = getattr(st.session_state,'taps_mf',None)
+            buffer = io.StringIO()
+            var = np.array(var.numpy()).reshape((-1,))
+            np.savetxt(buffer, var, delimiter=',')
+            buffer.seek(0)
+            download_button2_area.download_button(
+                label="Download Matched Filter as CSV",
+                data=buffer.getvalue(),
+                file_name='matched_filter_taps.csv',
+                mime='text/csv'
+            )
+        
     st.session_state.sttable = st.table()
     
     st.session_state.md_fig, st.session_state.md_ax = plt.subplots(frameon=False,figsize=(3, 1.5))
     md_update_fcn()
         
-    if not st.session_state.learning and not st.session_state.paused:
+    if not getattr(st.session_state, "learning", False) and not getattr(st.session_state, "paused", False):
         
         # Attribute random session ID
         st.session_state.session_id = uuid.uuid1()
