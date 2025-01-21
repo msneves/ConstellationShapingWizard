@@ -143,7 +143,7 @@ def page_setup():
     st.session_state.md_fig, st.session_state.md_ax = plt.subplots(frameon=False,figsize=(3, 1.5))
     md_update_fcn()
         
-    if not st.session_state.learning and not st.session_state.paused:
+    if not getattr(st.session_state, "learning", False) and not getattr(st.session_state, "paused", False):
         
         # Attribute random session ID
         st.session_state.session_id = uuid.uuid1()

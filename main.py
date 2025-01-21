@@ -152,12 +152,17 @@ while(st.session_state.learning and st.session_state.current_epoch<st.session_st
         
         # Iterate over system
         st.session_state.current_loss,st.session_state.H,st.session_state.MI,st.session_state.GMI,sig,n_var = train_step()
-        st.session_state.current_batch += 1
+        if "current_batch" not in st.session_state:
+            st.session_state.current_batch = 0
+        else:
+            st.session_state.current_batch += 1
     
     # Plot dynamic results
     if not st.session_state.current_batch%st.session_state.batches_per_plot:
-        plot_const(sig,n_var)
-        plot_filters()
+        if "const_points" in st.session_state:
+            plot_const(sig,n_var)
+        if "ax_filters" in st.session_state:
+            plot_filters()
         st.session_state.sig = sig
         st.session_state.n_var = n_var
     
