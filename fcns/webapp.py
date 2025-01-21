@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from fcns.callbacks import learn_button_fcn,stop_button_fcn,reset_button_fcn,choice_M_fcn,snr_update_fcn,choice_const_fcn,choice_demapper_fcn,choice_probs_fcn,md_update_fcn,qb_update_fcn,choice_ps_fcn,choice_mf_fcn,ntaps_update_fcn,bw_update_fcn
 from fcns.resetters import reset_epochs
 import uuid
+import numpy as np
+import io
 
 
 def page_setup():
@@ -107,6 +109,34 @@ def page_setup():
     st.session_state.ax_filters[1].tick_params(axis='x', colors='white')
     st.session_state.ax_filters[1].tick_params(axis='y', colors='white')
     st.session_state.stplot_filters = plot_filters_area.pyplot(st.session_state.fig_filters)
+    
+    
+    # Create a download button for the pulse shaper and mf
+    resize = 0.7
+    _, download_button1_area, download_button2_area, _ = st.columns((.5, resize / (1 - resize)/2, resize / (1 - resize)/2, .5), gap="small")
+    var = getattr(st.session_state,'taps_ps',None)
+    if var is not None:
+        buffer = io.StringIO()
+        var = np.array(var.numpy()).reshape((-1,))
+        np.savetxt(buffer, var, delimiter=',')
+        buffer.seek(0)
+        download_button1_area.download_button(
+            label="Download Pulse Shaper as CSV",
+            data=buffer.getvalue(),
+            file_name='pulse_shaper_taps.csv',
+            mime='text/csv'
+        )
+        var = getattr(st.session_state,'taps_mf',None)
+        buffer = io.StringIO()
+        var = np.array(var.numpy()).reshape((-1,))
+        np.savetxt(buffer, var, delimiter=',')
+        buffer.seek(0)
+        download_button2_area.download_button(
+            label="Download Matched Filter as CSV",
+            data=buffer.getvalue(),
+            file_name='matched_filter_taps.csv',
+            mime='text/csv'
+        )
     
     st.session_state.sttable = st.table()
     
